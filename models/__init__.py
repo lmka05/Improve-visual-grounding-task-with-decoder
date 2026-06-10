@@ -1,1 +1,1 @@
-from .model import SeqTRDet
+from .model import CoordinateSequenceDecoder

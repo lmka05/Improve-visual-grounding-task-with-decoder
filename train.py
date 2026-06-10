@@ -13,7 +13,7 @@ from torch.optim.lr_scheduler import LambdaLR
 from config import Config
 from utils.vocab import build_vocab, build_glove_matrix
 from datasets.dataset import RefCOCODataset, build_dataloader
-from models.model import SeqTRDet
+from models.model import CoordinateSequenceDecoder
 from evaluate import evaluate
 
 def set_seed(seed):
@@ -137,7 +137,7 @@ def train_one_epoch(model, dataloader, optimizer, device, epoch, config, ema=Non
     return avg_loss
 
 
-# PHẦN 3: MAIN
+# Main
 
 def main():
     config = Config
@@ -187,7 +187,7 @@ def main():
 
     # Build model
     print("Building model")
-    model = SeqTRDet(config, glove_matrix).to(device)
+    model = CoordinateSequenceDecoder(config, glove_matrix).to(device)
     total_params = sum(p.numel() for p in model.parameters())
     train_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"Total params: {total_params:,}")

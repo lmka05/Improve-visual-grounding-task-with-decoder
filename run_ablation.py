@@ -14,7 +14,7 @@ from torch.optim.lr_scheduler import LambdaLR
 from config import Config
 from utils.vocab import build_vocab, build_glove_matrix
 from datasets.dataset import RefCOCODataset, build_dataloader
-from models.model import SeqTRDet
+from models.model import CoordinateSequenceDecoder
 from evaluate import evaluate
 from train import set_seed, EMA, build_scheduler, train_one_epoch
 
@@ -117,7 +117,7 @@ def run_experiment(exp_id, exp_config, config, glove_matrix, token2idx,
     )
 
     # Build model
-    model = SeqTRDet(config, glove_matrix).to(device)
+    model = CoordinateSequenceDecoder(config, glove_matrix).to(device)
     
     total_params = sum(p.numel() for p in model.parameters())
     train_params = sum(p.numel() for p in model.parameters() if p.requires_grad)

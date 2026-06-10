@@ -5,7 +5,7 @@ import torch
 from config import Config
 from utils.vocab import build_vocab, build_glove_matrix
 from datasets.dataset import RefCOCODataset, build_dataloader
-from models.model import SeqTRDet
+from models.model import CoordinateSequenceDecoder
 from evaluate import evaluate
 
 
@@ -40,8 +40,8 @@ def main():
         glove_matrix[0] = 0
 
     # Build model + load checkpoint
-    print("\n--- Loading model ---")
-    model = SeqTRDet(config, glove_matrix).to(device)
+    print("Loading model")
+    model = CoordinateSequenceDecoder(config, glove_matrix).to(device)
     ckpt = torch.load(args.checkpoint, map_location=device, weights_only=False)
 
     if 'ema_shadow' in ckpt:

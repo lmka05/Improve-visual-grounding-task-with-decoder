@@ -6,7 +6,7 @@ from .fusion import SimpleFusion
 from .transformer import SeqHead
 
 
-class SeqTRDet(nn.Module):
+class CoordinateSequenceDecoder(nn.Module):
     def __init__(self, config, glove_vectors):
         super().__init__()
 
@@ -27,16 +27,16 @@ class SeqTRDet(nn.Module):
 
         # Sequence Head
         self.head = SeqHead(
-            in_ch=config.backbone_out_channels,  # 1024
-            d_model=config.d_model,               # 256
-            nhead=config.nhead,                    # 8
-            dim_feedforward=config.dim_feedforward, # 1024
-            dropout=config.dropout,                # 0.1
-            enc_layers=config.enc_layers,          # 6
-            dec_layers=config.dec_layers,          # 3
-            num_bin=config.num_bin,                 # 1000
-            label_smoothing=config.label_smoothing, # 0.1
-            token_weights=config.token_weights,      # Per-token weights (ablation)
+            in_ch=config.backbone_out_channels,
+            d_model=config.d_model,               
+            nhead=config.nhead,                    
+            dim_feedforward=config.dim_feedforward, 
+            dropout=config.dropout,               
+            enc_layers=config.enc_layers,          
+            dec_layers=config.dec_layers,         
+            num_bin=config.num_bin,                 
+            label_smoothing=config.label_smoothing, 
+            token_weights=config.token_weights,      
         )
 
     def forward(self, img, ref_inds, img_shapes, gt_bbox=None):
@@ -70,13 +70,11 @@ class SeqTRDet(nn.Module):
 #     sys.path.insert(0, '.')
 #     from config import Config
 
-#     print("Test SeqTRDet (Full Model)")
-
 #     vocab_size = 100
 #     fake_glove = torch.randn(vocab_size, Config.glove_dim)
 #     fake_glove[0] = 0  
 
-#     model = SeqTRDet(Config, fake_glove)
+#     model = CoordinateSequenceDecoder(Config, fake_glove)
 
 #     total = sum(p.numel() for p in model.parameters())
 #     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -110,4 +108,3 @@ class SeqTRDet(nn.Module):
 #     print(f"Predicted bbox: {pred_bbox}")
 #     print(f"Shape: {pred_bbox.shape}") 
 
-#     print("SeqTRDet full model test passed")

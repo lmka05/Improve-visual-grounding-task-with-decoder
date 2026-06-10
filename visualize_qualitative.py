@@ -10,7 +10,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches, Patch
 from config import Config
-from models import SeqTRDet
+from models import CoordinateSequenceDecoder
 from datasets import RefCOCODataset
 from datasets.dataset import resize_image_keep_ratio
 from utils import build_vocab, build_glove_matrix
@@ -48,7 +48,7 @@ def load_model(checkpoint_path, config, device):
 
     # Khởi tạo model 
     print("Building model")
-    model = SeqTRDet(config, glove_matrix).to(device)
+    model = CoordinateSequenceDecoder(config, glove_matrix).to(device)
 
     # Load checkpoint
     print(f"Loading checkpoint: {checkpoint_path}")
@@ -237,7 +237,7 @@ def save_individual_images(results, img_dir, img_size, output_dir):
     print(f"Đã lưu {len(results)} ảnh riêng lẻ vào: {output_dir}/")
 
 
-# PHẦN 8: HÀM MAIN 
+# Hàm train
 
 def main():
     parser = argparse.ArgumentParser(
