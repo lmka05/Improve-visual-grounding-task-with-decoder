@@ -3,9 +3,7 @@ class Config:
     ann_file = "/kaggle/input/datasets/minhkhoai/seqtr-annotations-weights/annotations/refcoco-unc/instances.json"
 
     img_size = 640
-
     max_token = 15
-
     glove_dim = 300
 
     # Tham số cho visual backbone
@@ -17,12 +15,9 @@ class Config:
     # Tham số cho kiến trúc Transformer
     d_model = 256
     nhead = 8
-
     dim_feedforward = 1024 
-
     enc_layers = 6
     dec_layers = 3
-
     dropout = 0.1
 
     # Quantization
@@ -33,40 +28,32 @@ class Config:
     batch_size = 16
     lr = 6.25e-5
     epochs = 60
-    warmup_epochs = 5 # Trong 5 epoch đầu, lr tăng từ 0 lên lr giúp model ổn định giai đoạn đầu
-    decay_epoch = 50 # Epoch mà lr sẽ giảm (nhân với ratio)
+    warmup_epochs = 5 
+    decay_epoch = 50 
     decay_ratio = 0.1
-    grad_clip = 0.15 # Giói hạn norm gradient để tránh exploding gradients, nếu >0.15 thì giảm thành 0.15
+    grad_clip = 0.15
 
     # EMA duy trì 1 bản sao "trung bình" của model weights.
     # ema_decay = 0.999 nghĩa là: shadow = 0.999 * shadow + 0.001 * current_weights
     ema = True
     ema_decay = 0.999
 
-    # Thay vì hard target [0, 0, 1, 0, ...], dùng soft target [0.0001, 0.0001, 0.9, 0.0001, ...]
-    # Giúp model tránh over-confident và generalize tốt hơn.
+    # Soft target
     label_smoothing = 0.1
 
-    # ABLATION STUDY - Language Pooling
-    # Cách tổng hợp output của BiGRU thành 1 vector:
-    #   "max"  — Max pooling (mặc định, tốt nhất theo paper)
-    #   "mean" — Mean pooling (trung bình các hidden states)
-    #   "last" — Final hidden state (nối forward + backward)
+    # Ablation - pooling của nhánh ngôn ngữ
     pooling = "max"
 
-    # ABLATION STUDY - Token Weights
-    # Trọng số cho mỗi token trong sequence [x1, y1, x2, y2, END]
-    # None = đều (1.0 cho tất cả)
-    # Ví dụ: [1.5, 1.0, 1.0, 1.0, 1.0] = x1 nặng hơn (theo paper gốc)
+    # Ablation - Token Weights
     token_weights = [2.0, 1.5, 1.0, 1.0, 0.5 ]
 
-    # 6. LOGGING & CHECKPOINT
-    # In log mỗi N batches.
+    # Logging & Checkpoints
     log_interval = 80
-    # Random seed: Đảm bảo kết quả reproducible (chạy lại ra cùng kết quả).
+
+    # Random seed
     seed = 6666
-    # Số workers cho DataLoader. Kaggle nên dùng 0 để tránh memory leak qua nhiều epoch.
     num_workers = 2
+    
     # Thư mục lưu checkpoint & log.
     work_dir = "/kaggle/working/checkpoints"
 

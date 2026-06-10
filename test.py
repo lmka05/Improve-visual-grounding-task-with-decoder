@@ -1,9 +1,7 @@
 import os
 import sys
 import argparse
-
 import torch
-
 from config import Config
 from utils.vocab import build_vocab, build_glove_matrix
 from datasets.dataset import RefCOCODataset, build_dataloader
@@ -27,7 +25,7 @@ def main():
     print(f"Checkpoint: {args.checkpoint}")
     print(f"Splits: {args.splits}")
 
-    # 1. Build vocab + GloVe
+    # Build vocab + GloVe
     print("\n--- Building vocab ---")
     token2idx, idx2token = build_vocab(config.ann_file)
     print(f"Vocab size: {len(token2idx)}")
@@ -37,17 +35,15 @@ def main():
         glove_model = api.load("glove-wiki-gigaword-300")
         glove_matrix = build_glove_matrix(token2idx, glove_model, config.glove_dim)
     except ImportError:
-        print("⚠️ gensim chưa cài. Dùng random embeddings.")
+        print("gensim chưa cài. Dùng random embeddings.")
         glove_matrix = torch.randn(len(token2idx), config.glove_dim) * 0.01
         glove_matrix[0] = 0
 
-    # 2. Build model + load checkpoint
+    # Build model + load checkpoint
     print("\n--- Loading model ---")
     model = SeqTRDet(config, glove_matrix).to(device)
-
     ckpt = torch.load(args.checkpoint, map_location=device, weights_only=False)
 
-    # Ưu tiên dùng EMA weights nếu có
     if 'ema_shadow' in ckpt:
         print("Using EMA weights")
         model.load_state_dict(ckpt['ema_shadow'], strict=True)
@@ -57,11 +53,10 @@ def main():
     epoch = ckpt.get('epoch', '?')
     print(f"Loaded checkpoint from epoch {epoch}")
 
-    # 3. Evaluate trên từng split
-    print("\n" + "=" * 60)
+    # Evaluate
     results = {}
     for split in args.splits:
-        print(f"\n--- Evaluating on [{split}] ---")
+        print(f"Evaluating on [{split}]")
         try:
             dataset = RefCOCODataset(
                 config.ann_file, config.img_dir, split,
@@ -74,17 +69,16 @@ def main():
             acc, avg_iou = evaluate(model, loader, device, desc=split)
             results[split] = {'accuracy': acc, 'avg_iou': avg_iou}
         except KeyError:
-            print(f"  ⚠️ Split '{split}' không tồn tại trong file annotations.")
+            print(f"Split '{split}' không tồn tại trong file annotations.")
 
-    # 4. Tổng kết
-    print("\n" + "=" * 60)
-    print("TỔNG KẾT KẾT QUẢ")
+    # Tổng kết
+    print("-" * 60)
+    print("Kết quả")
     print("=" * 60)
     for split, res in results.items():
         print(f"  {split:8s}: Acc@IoU>=0.5 = {res['accuracy']:.2f}% | "
               f"Avg IoU = {res['avg_iou']:.2f}%")
     print("=" * 60)
-
 
 if __name__ == "__main__":
     main()

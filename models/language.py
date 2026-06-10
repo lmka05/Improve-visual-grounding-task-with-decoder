@@ -11,8 +11,7 @@ class LanguageEncoder(nn.Module):
         self.embedding = nn.Embedding.from_pretrained(
             glove_vectors,
             padding_idx=0,
-            freeze = True # Không train glove
-
+            freeze = True 
         )
         
         self.gru = nn.GRU(
@@ -22,35 +21,22 @@ class LanguageEncoder(nn.Module):
             bidirectional = True,
             batch_first = True,
             bias = True,
-            dropout = 0.0, # chỉ có 1 layer trên không dropout
+            dropout = 0.0,
         )
 
     def forward(self, ref_inds):
-        # ref_inds: [B, max_lang_tokens]
-        mask = (ref_inds == 0) # mask trả true cho token 0 (đây là mặt nạ để nó biết chỗ nào là mask)
-
-        emb = self.embedding(ref_inds) # tra bảng embedding để lấy ra vector cho mỗi token
-
-        output, hidden = self.gru(emb) # ouput : output tại mỗi token (512 chiều), do nó có 2 hướng nên shape của output là [B, seq_len, hidden_size * 2]
-        # hidden: trạng thái ẩn cuối cùng, shape [num_layers * num_directions, B, hidden_size]
+        mask = (ref_inds == 0) 
+        emb = self.embedding(ref_inds)
+        output, hidden = self.gru(emb) 
 
         if self.pooling == "max":
-            # Max pooling: lấy giá trị lớn nhất theo chiều seq_len
-            # hàm mask_fill(condition,value) : gán value tại những chỗ mà condition true, hàm unsqueeze(position) này sẽ thêm chiều 1 vào vị trí được truyền vào
-            # trước khi max pooling thì mình cần phải gán âm vô cùng cho vị trí pad thì nó sẽ không bao giờ thắng
             output = output.masked_fill(mask.unsqueeze(-1), float('-inf'))
-            y = output.max(dim =1, keepdim = True).values # với mỗi chiều trong 1024 chiều, thì nó sẽ lấy max trong 15 token
+            y = output.max(dim =1, keepdim = True).values 
         elif self.pooling == "mean":
-            # Mean pooling: tính trung bình chỉ trên các token hợp lệ (không phải PAD)
-            # gán 0 cho vị trí pad để không ảnh hưởng đến tổng
             output = output.masked_fill(mask.unsqueeze(-1), 0.0)
-            # đếm số token hợp lệ (không phải pad) cho mỗi câu, clamp(min=1) để tránh chia cho 0
-            valid_counts = (~mask).sum(dim=1, keepdim=True).unsqueeze(-1).clamp(min=1) # [B, 1, 1]
-            y = output.sum(dim=1, keepdim=True) / valid_counts # [B, 1, hidden_size * 2]
+            valid_counts = (~mask).sum(dim=1, keepdim=True).unsqueeze(-1).clamp(min=1) 
+            y = output.sum(dim=1, keepdim=True) / valid_counts 
         elif self.pooling == "last":
-            # Last pooling: lấy trạng thái ẩn cuối cùng của BiGRU
-            # hidden có shape [num_layers * 2, B, hidden_size], lấy 2 hướng cuối rồi nối lại
-            # hidden[-2]: hướng thuận (forward), hidden[-1]: hướng ngược (backward)
-            y = torch.cat([hidden[-2], hidden[-1]], dim=-1).unsqueeze(1) # [B, 1, hidden_size * 2]
+            y = torch.cat([hidden[-2], hidden[-1]], dim=-1).unsqueeze(1) 
         
         return y
